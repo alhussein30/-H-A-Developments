@@ -192,7 +192,7 @@ export default function Site() {
             </div>
           </div>
 
-          <div data-reveal style={{ ...reveal, position: "relative", minHeight: 380 }} className="hero-right">
+          <div data-reveal style={{ ...reveal, position: "relative", minHeight: 480 }} className="hero-right">
             <div className="hero-card-1" style={{ ...cardStyle, position: "absolute", top: 0, right: ar ? "auto" : 0, left: ar ? 0 : "auto", width: 260, zIndex: 3, animation: "floaty 6s ease-in-out infinite", animationDelay: "0s" }}>
               <div style={{ fontSize: 12, color: C.dim, marginBottom: 12, fontFamily: monoFont }}>revenue.ts</div>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80 }}>
@@ -202,7 +202,7 @@ export default function Site() {
               </div>
             </div>
 
-            <div className="hero-card-2" style={{ ...cardStyle, position: "absolute", top: 100, right: ar ? "auto" : 60, left: ar ? 60 : "auto", width: 240, zIndex: 2, animation: "floaty2 7s ease-in-out infinite", animationDelay: ".5s" }}>
+            <div className="hero-card-2" style={{ ...cardStyle, position: "absolute", top: 160, right: ar ? "auto" : 60, left: ar ? 60 : "auto", width: 240, zIndex: 2, animation: "floaty2 7s ease-in-out infinite", animationDelay: ".5s" }}>
               <div style={{ fontSize: 12, color: C.dim, marginBottom: 8, fontFamily: monoFont }}>api/health</div>
               {["Users API", "Payments", "Auth"].map((name, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 0", borderBottom: i < 2 ? `1px solid ${C.border}` : "none" }}>
@@ -212,7 +212,7 @@ export default function Site() {
               ))}
             </div>
 
-            <div className="hero-card-3" style={{ ...cardStyle, position: "absolute", top: 220, right: ar ? "auto" : 20, left: ar ? 20 : "auto", width: 280, zIndex: 1, animation: "floaty 5s ease-in-out infinite", animationDelay: "1s" }}>
+            <div className="hero-card-3" style={{ ...cardStyle, position: "absolute", top: 330, right: ar ? "auto" : 20, left: ar ? 20 : "auto", width: 280, zIndex: 1, animation: "floaty 5s ease-in-out infinite", animationDelay: "1s" }}>
               <pre style={{ margin: 0, fontSize: 12, fontFamily: monoFont, color: C.dim, lineHeight: 1.6 }}>
                 <span style={{ color: "#c084fc" }}>const</span>{" "}
                 <span style={{ color: C.accent }}>deploy</span>{" "}
@@ -311,7 +311,7 @@ export default function Site() {
                   <button onClick={() => setModalIndex(i)} style={btnOutline}>{t.work.view}</button>
                 </div>
                 <div className="project-card-img" style={{ height: "100%", minHeight: 260, background: C.bg }}>
-                  <ImageSlot id={p.slot} placeholder={p.name?.en || "Project"} radius={0} />
+                  <ImageSlot id={p.slot} placeholder={p.name?.en || "Project"} radius={0} readOnly />
                 </div>
               </div>
             ))}
@@ -385,7 +385,7 @@ export default function Site() {
             {team.map(m => (
               <div key={m.id} data-reveal style={{ ...reveal, ...cardStyle, textAlign: "center" }}>
                 <div style={{ width: 100, height: 100, borderRadius: "50%", overflow: "hidden", margin: "0 auto 16px", border: `2px solid ${C.border}` }}>
-                  <ImageSlot id={m.slot} placeholder={m.name?.en || ""} radius={50} />
+                  <ImageSlot id={m.slot} placeholder={m.name?.en || ""} radius={50} readOnly />
                 </div>
                 <h3 style={{ fontSize: 20, fontWeight: 600, fontFamily: headFont, color: C.text, margin: "0 0 4px" }}>{m.name?.[lang] || ""}</h3>
                 <div style={{ fontSize: 14, color: C.accent, fontFamily: monoFont, marginBottom: 10 }}>{m.role?.[lang] || ""}</div>
@@ -546,7 +546,7 @@ export default function Site() {
           <div className="modal-inner" onClick={e => e.stopPropagation()} style={{ background: C.card, borderRadius: 20, border: `1px solid ${C.border}`, maxWidth: 720, width: "100%", maxHeight: "90vh", overflow: "auto", position: "relative" }}>
             <button onClick={() => setModalIndex(-1)} style={{ position: "absolute", top: 16, right: ar ? "auto" : 16, left: ar ? 16 : "auto", background: C.bg, border: `1px solid ${C.border}`, color: C.dim, width: 36, height: 36, borderRadius: 10, cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2 }}>&times;</button>
             <div className="modal-img" style={{ height: 280, background: C.bg, borderRadius: "20px 20px 0 0", overflow: "hidden" }}>
-              <ImageSlot id={modalProject.slot} placeholder={modalProject.name?.en || ""} radius={0} />
+              <ImageSlot id={modalProject.slot} placeholder={modalProject.name?.en || ""} radius={0} readOnly />
             </div>
             <div style={{ padding: 32 }}>
               <span style={{ fontSize: 12, fontFamily: monoFont, color: C.accent, background: "rgba(163,230,53,.1)", padding: "4px 10px", borderRadius: 6, marginBottom: 12, display: "inline-block" }}>{modalProject.kind?.[lang] || ""}</span>
