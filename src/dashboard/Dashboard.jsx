@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../firebase";
 import { useContent } from "../useContent";
 import ImageSlot from "../ImageSlot";
+
+const SETTINGS_DOC = doc(db, "site", "settings");
 
 const BG = "#101418";
 const CARD = "#1A2028";
@@ -185,6 +189,7 @@ const TABS = [
   { key: "testimonials", label: "Testimonials" },
   { key: "links", label: "Links" },
   { key: "budget", label: "Budget & types" },
+  { key: "settings", label: "Settings" },
 ];
 
 const SUBS = {
@@ -195,6 +200,7 @@ const SUBS = {
   testimonials: "Client quotes & endorsements",
   links: "Social & contact links",
   budget: "Budget ranges & project types",
+  settings: "Password & account settings",
 };
 
 function badge(data, key) {
@@ -207,14 +213,160 @@ function badge(data, key) {
   if (key === "links") {
     return Object.values(data.links || {}).filter((v) => v).length;
   }
+  if (key === "settings") return "⚙";
   return 0;
 }
 
+function SettingsPanel({ onLogout }) {
+  const [curPw, setCurPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
+  const [msg, setMsg] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  async function changePw(e) {
+    e.preventDefault();
+    if (!newPw || newPw.length < 4) {
+      setMsg({ text: "Password must be at least 4 characters", ok: false });
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setMsg({ text: "Passwords don't match", ok: false });
+      return;
+    }
+    setSaving(true);
+    const stored = await getStoredPass();
+    if (curPw !== stored) {
+      setMsg({ text: "Current password is wrong", ok: false });
+      setSaving(false);
+      return;
+    }
+    try {
+      await setDoc(SETTINGS_DOC, { password: newPw }, { merge: true });
+      setMsg({ text: "Password updated!", ok: true });
+      setCurPw(""); setNewPw(""); setConfirmPw("");
+    } catch {
+      setMsg({ text: "Failed to save — check connection", ok: false });
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div style={{ maxWidth: 480 }}>
+      <Card title="Change password">
+        <form onSubmit={changePw} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <Field label="Current password" value={curPw} onChange={(v) => setCurPw(v)} />
+          <Field label="New password" value={newPw} onChange={(v) => setNewPw(v)} />
+          <Field label="Confirm new password" value={confirmPw} onChange={(v) => setConfirmPw(v)} />
+          {msg && (
+            <p style={{ margin: 0, fontSize: 13, color: msg.ok ? ACCENT : "#EF4444" }}>{msg.text}</p>
+          )}
+          <button type="submit" disabled={saving} style={{
+            padding: "10px 24px", border: "none", borderRadius: 11, cursor: "pointer",
+            background: ACCENT, color: "#101418", fontFamily: FONT_B, fontSize: 14, fontWeight: 600,
+            opacity: saving ? 0.6 : 1, alignSelf: "flex-start",
+          }}>{saving ? "Saving..." : "Update password"}</button>
+        </form>
+      </Card>
+      <Card title="Session" style={{ marginTop: 20 }}>
+        <button onClick={onLogout} style={{
+          padding: "10px 24px", border: "1px solid rgba(239,68,68,.3)", borderRadius: 11,
+          cursor: "pointer", background: "transparent", color: "#EF4444",
+          fontFamily: FONT_B, fontSize: 14, fontWeight: 500,
+        }}>Log out</button>
+      </Card>
+    </div>
+  );
+}
+
+const DEFAULT_PASS = "HA@dev2026";
+
+async function getStoredPass() {
+  try {
+    const snap = await getDoc(SETTINGS_DOC);
+    return snap.exists() && snap.data().password ? snap.data().password : DEFAULT_PASS;
+  } catch {
+    return DEFAULT_PASS;
+  }
+}
+
+function LoginGate({ onAuth }) {
+  const [pw, setPw] = useState("");
+  const [err, setErr] = useState(false);
+  const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setLoading(true);
+    const stored = await getStoredPass();
+    setLoading(false);
+    if (pw === stored) {
+      sessionStorage.setItem("ha-admin-auth", "1");
+      onAuth();
+    } else {
+      setErr(true);
+      setTimeout(() => setErr(false), 1500);
+    }
+  }
+
+  return (
+    <div style={{
+      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      background: BG, fontFamily: FONT_B,
+    }}>
+      <form onSubmit={submit} style={{
+        background: CARD, border: `1px solid ${BORDER}`, borderRadius: 20, padding: "48px 40px",
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 24, width: 380, maxWidth: "90vw",
+      }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 14, background: `linear-gradient(135deg, ${ACCENT}, #65A30D)`,
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800,
+          color: "#101418", fontFamily: FONT_H,
+        }}>HA</div>
+        <div style={{ textAlign: "center" }}>
+          <h2 style={{ margin: 0, fontSize: 22, fontFamily: FONT_H, color: TEXT }}>Control Room</h2>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: TEXT2 }}>Enter password to access the dashboard</p>
+        </div>
+        <div style={{ width: "100%", position: "relative" }}>
+          <input
+            type={show ? "text" : "password"}
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            placeholder="Password"
+            autoFocus
+            style={{
+              ...inp({ paddingRight: 44 }),
+              borderColor: err ? "#EF4444" : BORDER,
+              boxShadow: err ? "0 0 0 3px rgba(239,68,68,.2)" : "none",
+            }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          />
+          <button type="button" onClick={() => setShow(!show)} style={{
+            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+            background: "none", border: "none", color: TEXT2, cursor: "pointer", fontSize: 18, padding: 4,
+          }}>{show ? "◡" : "◠"}</button>
+        </div>
+        {err && <p style={{ margin: 0, fontSize: 12, color: "#EF4444" }}>Wrong password</p>}
+        <button type="submit" style={{
+          width: "100%", padding: "12px 0", border: "none", borderRadius: 11, cursor: "pointer",
+          background: ACCENT, color: "#101418", fontFamily: FONT_B, fontSize: 14, fontWeight: 600,
+          transition: "opacity .2s",
+        }}>Unlock</button>
+      </form>
+    </div>
+  );
+}
+
 export default function Dashboard() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem("ha-admin-auth") === "1");
   const { data, commit, uid, DEFAULTS } = useContent();
   const [tab, setTab] = useState("content");
   const [lang, setLang] = useState("en");
   const [drafts, setDrafts] = useState({});
+
+  if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
 
   const isAr = lang === "ar";
   const dir = isAr ? "rtl" : "ltr";
@@ -892,6 +1044,10 @@ export default function Dashboard() {
     );
   }
 
+  function renderSettings() {
+    return <SettingsPanel onLogout={() => { sessionStorage.removeItem("ha-admin-auth"); setAuthed(false); }} />;
+  }
+
   const tabInfo = TABS.find((t) => t.key === tab) || TABS[0];
 
   const content = {
@@ -902,6 +1058,7 @@ export default function Dashboard() {
     testimonials: renderTestimonials,
     links: renderLinks,
     budget: renderBudget,
+    settings: renderSettings,
   };
 
   return (
