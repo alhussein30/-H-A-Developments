@@ -1,0 +1,101 @@
+export const DEFAULTS = {
+  hero: {
+    en: {
+      title: "We build software that grows businesses.",
+      sub: "Scalable web applications, enterprise systems and AI-powered products — architected end to end, shipped fast, engineered to last.",
+      cta1: "Start your project",
+      cta2: "View portfolio",
+    },
+    ar: {
+      title: "نبني برمجيات تُنمّي الأعمال.",
+      sub: "تطبيقات ويب قابلة للتوسّع، وأنظمة مؤسسية، ومنتجات مدعومة بالذكاء الاصطناعي — نهندسها من الفكرة حتى الإطلاق، بسرعة وبمتانة تدوم.",
+      cta1: "ابدأ مشروعك",
+      cta2: "شاهد أعمالنا",
+    },
+  },
+  about: {
+    en: {
+      title: "Building software with precision.",
+      body: "H&A Developments pairs frontend craft with serious backend engineering. We take products from first sketch to production deployment — no handoffs, no translation loss between design and infrastructure.",
+      body2: "Startups use us to launch faster than a full in-house team allows. Established businesses use us to modernise systems that have outgrown their architecture.",
+    },
+    ar: {
+      title: "نبني البرمجيات بدقة.",
+      body: "إتش آند إيه للتطوير تجمع بين إتقان الواجهات وهندسة خلفية جادة.",
+      body2: "تعتمد علينا الشركات الناشئة للانطلاق أسرع مما يتيحه فريق داخلي كامل.",
+    },
+  },
+  stats: [
+    { v: "20+", en: "Projects shipped end to end", ar: "مشروعًا مكتملًا" },
+    { v: "100%", en: "Responsive, accessible builds", ar: "واجهات متجاوبة" },
+    { v: "9", en: "Core engineering services", ar: "خدمات هندسية" },
+    { v: "24h", en: "Average response time", ar: "متوسط زمن الاستجابة" },
+  ],
+  projects: [
+    {
+      id: "jurista", slot: "work-jurista", year: "2025",
+      name: { en: "Jurista", ar: "Jurista" },
+      kind: { en: "Legal services platform", ar: "منصة خدمات قانونية" },
+      desc: { en: "A modern platform connecting clients with legal professionals.", ar: "منصة حديثة تربط العملاء بالمحترفين القانونيين." },
+      long: { en: "Jurista replaces the paperwork-first experience of traditional legal services with a guided digital flow.", ar: "تستبدل Jurista تجربة الأوراق التقليدية بمسار رقمي موجّه." },
+      role: { en: "Design + build", ar: "تصميم وتطوير" },
+      timeline: { en: "14 weeks", ar: "14 أسبوعًا" },
+      status: { en: "Live", ar: "مُطلق" },
+      tags: ["React", "Responsive", "Clean UI"],
+      stack: ["React", "JavaScript", "Tailwind CSS", "REST API"],
+    },
+    {
+      id: "yaqtin", slot: "work-yaqtin", year: "2024",
+      name: { en: "Al-Yaqtin Bookstore", ar: "مكتبة اليقطين" },
+      kind: { en: "E-commerce", ar: "تجارة إلكترونية" },
+      desc: { en: "An online bookstore with fast browsing and smooth cart.", ar: "مكتبة إلكترونية بتصفّح سريع وسلة سلسة." },
+      long: { en: "Al-Yaqtin is a bilingual online bookstore built around discovery.", ar: "مكتبة اليقطين متجر كتب ثنائي اللغة." },
+      role: { en: "Frontend build", ar: "تطوير الواجهة" },
+      timeline: { en: "9 weeks", ar: "9 أسابيع" },
+      status: { en: "Live", ar: "مُطلق" },
+      tags: ["React", "Interactive UX", "Responsive"],
+      stack: ["React", "State management", "Tailwind CSS"],
+    },
+  ],
+  soon: [
+    { id: "s1", name: { en: "Enterprise support portal", ar: "بوابة دعم للمؤسسات" }, desc: { en: "Ticketing, SLA tracking and reporting.", ar: "تذاكر ومتابعة اتفاقيات الخدمة." } },
+    { id: "s2", name: { en: "AI operations assistant", ar: "مساعد عمليات بالذكاء الاصطناعي" }, desc: { en: "Drafting, triage and summaries.", ar: "صياغة وفرز وتلخيص." } },
+  ],
+  team: [
+    {
+      id: "hussein", slot: "team-hussein",
+      name: { en: "Hussein Salah", ar: "حسين صلاح" },
+      role: { en: "Frontend Engineer", ar: "مهندس واجهات أمامية" },
+      bio: { en: "Builds the layer your users actually touch — component architecture, motion, and interfaces that hold up on every screen size.", ar: "يبني الطبقة التي يلمسها المستخدم فعليًا." },
+      skills: ["React", "JavaScript", "Tailwind CSS", "UI/UX", "Responsive design", "Animations"],
+    },
+    {
+      id: "abdelrahman", slot: "team-abdelrahman",
+      name: { en: "Abdelrahman Alaa", ar: "عبدالرحمن علاء" },
+      role: { en: "Backend Engineer", ar: "مهندس خلفية" },
+      bio: { en: "Builds the layer that keeps it standing — APIs, data models, cloud infrastructure and AI integrations.", ar: "يبني الطبقة التي تُبقي كل شيء واقفًا." },
+      skills: ["Ruby on Rails", "REST APIs", "PostgreSQL", "Azure", "System design", "AI integration"],
+    },
+  ],
+  quotes: [
+    { id: "q1", initials: "LH", name: { en: "Layla Haddad", ar: "ليلى حداد" }, role: { en: "Founder, legal tech startup", ar: "مؤسِّسة، شركة تقنية قانونية" }, text: { en: "They shipped in ten weeks what our previous agency quoted six months for.", ar: "أنجزوا خلال عشرة أسابيع ما قدّرته الوكالة السابقة بستة أشهر." } },
+    { id: "q2", initials: "ON", name: { en: "Omar Nassar", ar: "عمر نصار" }, role: { en: "Operations lead, retail group", ar: "مدير عمليات" }, text: { en: "The backend held up on launch day without a single incident.", ar: "صمدت الخلفية يوم الإطلاق دون أي عُطل." } },
+    { id: "q3", initials: "SM", name: { en: "Sara Mansour", ar: "سارة منصور" }, role: { en: "Product manager, SaaS", ar: "مديرة منتج" }, text: { en: "Everything arrived finished, not almost-finished.", ar: "كل شيء وصل مكتملًا لا شبه مكتمل." } },
+  ],
+  links: { github: "", linkedin: "", email: "hello@ha-dev.com", facebook: "", instagram: "", tiktok: "", youtube: "" },
+  budgets: [
+    { en: "Under $5k", ar: "أقل من 5 آلاف $" },
+    { en: "$5k – $15k", ar: "5 – 15 ألف $" },
+    { en: "$15k – $40k", ar: "15 – 40 ألف $" },
+    { en: "$40k+", ar: "أكثر من 40 ألف $" },
+    { en: "Not sure yet", ar: "لم أحدد بعد" },
+  ],
+  types: [
+    { en: "Web application", ar: "تطبيق ويب" },
+    { en: "Full stack product", ar: "منتج متكامل" },
+    { en: "API / backend", ar: "واجهات برمجية" },
+    { en: "AI integration", ar: "دمج ذكاء اصطناعي" },
+    { en: "UI/UX design", ar: "تصميم واجهات" },
+    { en: "Maintenance", ar: "صيانة ودعم" },
+  ],
+};
