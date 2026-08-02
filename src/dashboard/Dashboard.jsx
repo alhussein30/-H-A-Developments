@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { auth } from "../firebase";
 import { useContent } from "../useContent";
 import ImageSlot from "../ImageSlot";
-
-const SETTINGS_DOC = doc(db, "site", "settings");
 
 const BG = "#101418";
 const CARD = "#1A2028";
@@ -226,8 +224,8 @@ function SettingsPanel({ onLogout }) {
 
   async function changePw(e) {
     e.preventDefault();
-    if (!newPw || newPw.length < 4) {
-      setMsg({ text: "Password must be at least 4 characters", ok: false });
+    if (!newPw || newPw.length < 6) {
+      setMsg({ text: "New password must be at least 6 characters", ok: false });
       return;
     }
     if (newPw !== confirmPw) {
@@ -235,18 +233,22 @@ function SettingsPanel({ onLogout }) {
       return;
     }
     setSaving(true);
-    const stored = await getStoredPass();
-    if (curPw !== stored) {
-      setMsg({ text: "Current password is wrong", ok: false });
-      setSaving(false);
-      return;
-    }
     try {
-      await setDoc(SETTINGS_DOC, { password: newPw }, { merge: true });
+      const user = auth.currentUser;
+      const credential = EmailAuthProvider.credential(user.email, curPw);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPw);
       setMsg({ text: "Password updated!", ok: true });
       setCurPw(""); setNewPw(""); setConfirmPw("");
-    } catch {
-      setMsg({ text: "Failed to save — check connection", ok: false });
+    } catch (err) {
+      const code = err.code;
+      if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
+        setMsg({ text: "Current password is wrong", ok: false });
+      } else if (code === "auth/too-many-requests") {
+        setMsg({ text: "Too many attempts — try again later", ok: false });
+      } else {
+        setMsg({ text: "Failed to update — check connection", ok: false });
+      }
     }
     setSaving(false);
   }
@@ -255,9 +257,9 @@ function SettingsPanel({ onLogout }) {
     <div style={{ maxWidth: 480 }}>
       <Card title="Change password">
         <form onSubmit={changePw} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <Field label="Current password" value={curPw} onChange={(v) => setCurPw(v)} />
-          <Field label="New password" value={newPw} onChange={(v) => setNewPw(v)} />
-          <Field label="Confirm new password" value={confirmPw} onChange={(v) => setConfirmPw(v)} />
+          <Field label="Current password" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
+          <Field label="New password" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
+          <Field label="Confirm new password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} />
           {msg && (
             <p style={{ margin: 0, fontSize: 13, color: msg.ok ? ACCENT : "#EF4444" }}>{msg.text}</p>
           )}
@@ -269,45 +271,46 @@ function SettingsPanel({ onLogout }) {
         </form>
       </Card>
       <Card title="Session" style={{ marginTop: 20 }}>
+        <div style={{ fontSize: 13, color: TEXT2, marginBottom: 12, fontFamily: FONT_B }}>
+          Signed in as <span style={{ color: TEXT }}>{auth.currentUser?.email}</span>
+        </div>
         <button onClick={onLogout} style={{
           padding: "10px 24px", border: "1px solid rgba(239,68,68,.3)", borderRadius: 11,
           cursor: "pointer", background: "transparent", color: "#EF4444",
           fontFamily: FONT_B, fontSize: 14, fontWeight: 500,
-        }}>Log out</button>
+        }}>Sign out</button>
       </Card>
     </div>
   );
 }
 
-const DEFAULT_PASS = "HA@dev2026";
-
-async function getStoredPass() {
-  try {
-    const snap = await getDoc(SETTINGS_DOC);
-    return snap.exists() && snap.data().password ? snap.data().password : DEFAULT_PASS;
-  } catch {
-    return DEFAULT_PASS;
-  }
-}
-
 function LoginGate({ onAuth }) {
+  const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
-  const [err, setErr] = useState(false);
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
   async function submit(e) {
     e.preventDefault();
+    setErr("");
     setLoading(true);
-    const stored = await getStoredPass();
-    setLoading(false);
-    if (pw === stored) {
-      sessionStorage.setItem("ha-admin-auth", "1");
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), pw);
       onAuth();
-    } else {
-      setErr(true);
-      setTimeout(() => setErr(false), 1500);
+    } catch (error) {
+      const code = error.code;
+      if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
+        setErr("Wrong email or password");
+      } else if (code === "auth/too-many-requests") {
+        setErr("Too many attempts — try again later");
+      } else if (code === "auth/invalid-email") {
+        setErr("Invalid email address");
+      } else {
+        setErr("Sign-in failed — check your connection");
+      }
     }
+    setLoading(false);
   }
 
   return (
@@ -326,46 +329,71 @@ function LoginGate({ onAuth }) {
         }}>HA</div>
         <div style={{ textAlign: "center" }}>
           <h2 style={{ margin: 0, fontSize: 22, fontFamily: FONT_H, color: TEXT }}>Control Room</h2>
-          <p style={{ margin: "6px 0 0", fontSize: 13, color: TEXT2 }}>Enter password to access the dashboard</p>
+          <p style={{ margin: "6px 0 0", fontSize: 13, color: TEXT2 }}>Sign in to access the dashboard</p>
         </div>
-        <div style={{ width: "100%", position: "relative" }}>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
           <input
-            type={show ? "text" : "password"}
-            value={pw}
-            onChange={(e) => setPw(e.target.value)}
-            placeholder="Password"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
             autoFocus
             style={{
-              ...inp({ paddingRight: 44 }),
+              ...inp(),
               borderColor: err ? "#EF4444" : BORDER,
-              boxShadow: err ? "0 0 0 3px rgba(239,68,68,.2)" : "none",
             }}
             onFocus={handleFocus}
             onBlur={handleBlur}
           />
-          <button type="button" onClick={() => setShow(!show)} style={{
-            position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-            background: "none", border: "none", color: TEXT2, cursor: "pointer", fontSize: 18, padding: 4,
-          }}>{show ? "◡" : "◠"}</button>
+          <div style={{ position: "relative" }}>
+            <input
+              type={show ? "text" : "password"}
+              autoComplete="current-password"
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              placeholder="Password"
+              style={{
+                ...inp({ paddingRight: 44 }),
+                borderColor: err ? "#EF4444" : BORDER,
+              }}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+            />
+            <button type="button" onClick={() => setShow(!show)} style={{
+              position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+              background: "none", border: "none", color: TEXT2, cursor: "pointer", fontSize: 18, padding: 4,
+            }}>{show ? "◡" : "◠"}</button>
+          </div>
         </div>
-        {err && <p style={{ margin: 0, fontSize: 12, color: "#EF4444" }}>Wrong password</p>}
-        <button type="submit" style={{
+        {err && <p style={{ margin: 0, fontSize: 12, color: "#EF4444" }}>{err}</p>}
+        <button type="submit" disabled={loading} style={{
           width: "100%", padding: "12px 0", border: "none", borderRadius: 11, cursor: "pointer",
           background: ACCENT, color: "#101418", fontFamily: FONT_B, fontSize: 14, fontWeight: 600,
-          transition: "opacity .2s",
-        }}>Unlock</button>
+          opacity: loading ? 0.7 : 1, transition: "opacity .2s",
+        }}>{loading ? "Signing in…" : "Sign in"}</button>
       </form>
     </div>
   );
 }
 
 export default function Dashboard() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem("ha-admin-auth") === "1");
+  const [authed, setAuthed] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const { data, commit, uid, DEFAULTS } = useContent();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setAuthed(!!user);
+      setAuthChecked(true);
+    });
+    return unsub;
+  }, []);
   const [tab, setTab] = useState("content");
   const [lang, setLang] = useState("en");
   const [drafts, setDrafts] = useState({});
 
+  if (!authChecked) return null;
   if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
 
   const isAr = lang === "ar";
@@ -1045,7 +1073,7 @@ export default function Dashboard() {
   }
 
   function renderSettings() {
-    return <SettingsPanel onLogout={() => { sessionStorage.removeItem("ha-admin-auth"); setAuthed(false); }} />;
+    return <SettingsPanel onLogout={() => signOut(auth)} />;
   }
 
   const tabInfo = TABS.find((t) => t.key === tab) || TABS[0];
